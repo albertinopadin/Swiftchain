@@ -9,13 +9,13 @@
 import Foundation
 
 class Block<T> {
-    let index: Int64
+    let index: UInt64
     let previousHash: String
-    let timestamp: String
-    let data: T
+    let timestamp: UInt64
+    let data: T?
     let hash: String
     
-    init(index: Int64, previousHash: String, timestamp: String, data: T, hash: String) {
+    init(index: UInt64, previousHash: String, timestamp: UInt64, data: T?, hash: String) {
         self.index = index
         self.previousHash = previousHash
         self.timestamp = timestamp
