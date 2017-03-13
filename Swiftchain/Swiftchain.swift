@@ -29,6 +29,68 @@ class Swiftchain<T> {
                      hash: genesisHash)
     }
     
+    func generateNextBlock(data: T) -> Block<T>? {
+        guard let previousBlock = self.getLatestBlock() else {
+            return nil
+        }
+        
+        let nextIndex = previousBlock.index + 1
+        let nextTimestamp = Swiftchain.getCurrentTimeStamp()
+        let nextHash = Swiftchain.calculateHash(index: nextIndex,
+                                                previousHash: previousBlock.hash,
+                                                timestamp: nextTimestamp,
+                                                data: data)
+        return Block(index: nextIndex,
+                     previousHash: previousBlock.hash,
+                     timestamp: nextTimestamp,
+                     data: data,
+                     hash: nextHash)
+    }
+    
+    func calculateHashForBlock(block: Block<T>) -> String {
+        return Swiftchain.calculateHash(index: block.index,
+                                        previousHash: block.previousHash,
+                                        timestamp: block.timestamp,
+                                        data: block.data)
+    }
+    
+    func addBlock(newBlock: Block<T>) {
+        if self.isValidNewBlock(newBlock: newBlock, previousBlock: self.getLatestBlock()) {
+            self.blockchain.append(newBlock)
+        }
+    }
+    
+    func isValidNewBlock(newBlock: Block<T>, previousBlock: Block<T>?) -> Bool {
+        // TODO: Should include proper log function in the future:
+        if let prev = previousBlock {
+            if prev.index + 1 != newBlock.index {
+                print("Invalid index for block: \(newBlock)")
+                return false
+            }
+            else if prev.hash != newBlock.previousHash {
+                print("Invalid previous hash for block: \(newBlock)")
+                return false
+            }
+            else if self.calculateHashForBlock(block: newBlock) != newBlock.hash {
+                print("Invalid hash for block: \(newBlock)")
+                print("Calculated: \(self.calculateHashForBlock(block: newBlock)), passed in block: \(newBlock.hash)")
+                return false
+            }
+            
+            // All checks passed:
+            return true
+        } else {
+            // We should always have at least the genesis block in the blockchain
+            // If we do not something is very wrong:
+            return false
+        }
+        
+    }
+    
+    func getLatestBlock() -> Block<T>? {
+        return self.blockchain.last
+    }
+    
     // Returns the Unix time in milliseconds:
     static func getCurrentTimeStamp() -> UInt64 {
         return UInt64(NSDate().timeIntervalSince1970 * 1000.0)
