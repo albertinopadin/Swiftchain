@@ -10,7 +10,7 @@ import Foundation
 
 //print("Hello, World!")
 // Testing
-let swiftchain = Swiftchain<Any>()
+let swiftchain = Swiftchain<Int>()
 let genesisBlock = swiftchain.blockchain[0]
 print("Genesis Block:")
 print("\(genesisBlock)")

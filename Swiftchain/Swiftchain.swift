@@ -9,7 +9,7 @@
 import Foundation
 
 // Maybe we could conform this class to certain protocols later on
-class Swiftchain<T> {
+class Swiftchain<T> where T: Equatable {
     var blockchain: [Block<T>]
     
     init() {
@@ -90,6 +90,32 @@ class Swiftchain<T> {
     func getLatestBlock() -> Block<T>? {
         return self.blockchain.last
     }
+    
+    func replaceChain(newBlocks: [Block<T>]) {
+        if isValidChain(blockchainToValidate: newBlocks) && newBlocks.count > self.blockchain.count {
+            print("Recieved blockchain is valid; replacing current with new.")
+            self.blockchain = newBlocks
+            // broadcast(responseLatestMsg())  <- Will implement the server as a separate class later on
+        }
+    }
+    
+    func isValidChain(blockchainToValidate: [Block<T>]) -> Bool {
+        if let genesisBlockToValidate = blockchainToValidate.first {
+            if genesisBlockToValidate != self.getGenesisBlock() {
+                return false
+            }
+        }
+        
+        for i in 1 ..< blockchainToValidate.count {
+            if !isValidNewBlock(newBlock: blockchainToValidate[i], previousBlock: blockchainToValidate[i - 1]) {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    /* STATIC FUNCTIONS */
     
     // Returns the Unix time in milliseconds:
     static func getCurrentTimeStamp() -> UInt64 {

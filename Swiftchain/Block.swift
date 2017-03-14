@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Block<T> {
+class Block<T>: Equatable where T: Equatable {
     let index: UInt64
     let previousHash: String
     let timestamp: UInt64
@@ -21,5 +21,13 @@ class Block<T> {
         self.timestamp = timestamp
         self.data = data
         self.hash = hash
+    }
+    
+    static func ==(lhs: Block<T>, rhs: Block<T>) -> Bool {
+        return lhs.index == rhs.index &&
+               lhs.previousHash == rhs.previousHash &&
+               lhs.timestamp == rhs.timestamp &&
+               lhs.data == rhs.data &&
+               lhs.hash == rhs.hash
     }
 }
