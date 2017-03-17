@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "314414EA633E6EA0F8CB417D4CEC3CFA4FA8D152",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "314414EA633E6EA0F8CB417D4CEC3CFA4FA8D152" : 9223372036854775807,
+    "75224C288D14A799245F99223249EF48FF5DC280" : 9223372036854775807
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "F7110AD7-F0AF-4130-BD54-326BA0236B24",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "314414EA633E6EA0F8CB417D4CEC3CFA4FA8D152" : "Swiftchain\/",
+    "75224C288D14A799245F99223249EF48FF5DC280" : "..\/Swifter\/swifter"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "Swiftchain",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "Swiftchain.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/albertinopadin\/Swiftchain.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "314414EA633E6EA0F8CB417D4CEC3CFA4FA8D152"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/httpswift\/swifter.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "75224C288D14A799245F99223249EF48FF5DC280"
+    }
+  ]
+}
