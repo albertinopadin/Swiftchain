@@ -19,4 +19,4 @@ print("Timestamp: \(genesisBlock.timestamp)")
 print("Prev Hash: \(genesisBlock.previousHash)")
 print("Hash: \(genesisBlock.hash)")
 
-let server = SwiftchainServer()
+let server = SwiftchainServer<Int>()

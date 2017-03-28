@@ -123,7 +123,7 @@ class Swiftchain<T> where T: Equatable {
     }
     
     static func calculateHash(index: UInt64, previousHash: String, timestamp: UInt64, data: T?) -> String {
-        let dataString = "\(index)\(previousHash)\(timestamp)\(data)"
+        let dataString = "\(index)\(previousHash)\(timestamp)\(String(describing: data))"
         return Swiftchain.sha256(dataString: dataString) ?? ""
     }
     
