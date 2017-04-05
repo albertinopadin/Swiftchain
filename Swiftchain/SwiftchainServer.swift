@@ -14,10 +14,10 @@ private let default_http_port: UInt16 = 3002
 private let default_p2p_port: UInt16 = 6002
 private let localWebSocketAddressPrefix = "ws://localhost:"
 
-public class SwiftchainServer<T>: WebSocketDelegate where T: Equatable {
+public class SwiftchainServer<T>: WebSocketDelegate, SwiftchainDelegate where T: Equatable {
     // Combines Http and WebSocket servers to operate the blockchain:
-    // HTTP interface to control the node
-    // WebSockets to communicate with other nodes (P2P)
+    // HTTP (Swifter) interface to control the node
+    // WebSockets (Starscream) to communicate with other nodes (P2P)
     
     var swiftchain = Swiftchain<T>()
     
@@ -40,10 +40,11 @@ public class SwiftchainServer<T>: WebSocketDelegate where T: Equatable {
     
     let httpServer = HttpServer()
     var p2pServer: WebSocket!
-    var initialPeers = [String]()  // Guessing the peers are just a list of IP Addresses???
+    var initialPeers = [URL]()
     var sockets = [WebSocket]()
     
     init(httpPort: UInt16 = default_http_port, p2pPort: UInt16 = default_p2p_port) {
+        self.swiftchain.delegate = self
         self.connectToPeers(newPeers: initialPeers)
         self.initHttpServer(port: httpPort)
         self.initP2PServer(port: p2pPort)
@@ -72,10 +73,16 @@ public class SwiftchainServer<T>: WebSocketDelegate where T: Equatable {
     /** Starscream delegate methods **/
     public func websocketDidConnect(socket: WebSocket) {
         print("WebSocket is connected, \(socket)")
+        self.initConnection(ws: socket)
     }
     
     public func websocketDidDisconnect(socket: WebSocket, error: NSError?) {
         print("WebSocket has disconnected, \(socket)")
+        if let index = self.sockets.index(of: socket) {
+            self.sockets.remove(at: index)
+        } else {
+            print("Could not find socket: \(socket) in self.sockets.")
+        }
     }
     
     public func websocketDidReceiveMessage(socket: WebSocket, text: String) {
@@ -94,50 +101,69 @@ public class SwiftchainServer<T>: WebSocketDelegate where T: Equatable {
             case MessageType.QUERY_ALL:
                 try self.write(ws: socket, message: self.toJSON(obj: self.responseChainMsg()))
             case MessageType.RESPONSE_BLOCKCHAIN:
-                try self.handleBlockchainResponse(message: message)
-            default:
-                print("Recieved unknown type of data: \(data) on socket: \(socket).")
+                self.handleBlockchainResponse(message: message)
             }
         } catch let error {
             print("There was an error recieving data on socket: \(socket), data: \(data), error: \(error)")
         }
     }
-    
     /*********************************/
     
     func initConnection(ws: WebSocket) {
         do {
             self.sockets.append(ws)
-//            self.initMessageHandler(ws: ws)
-//            self.initErrorHandler(ws: ws)
             let msg = try self.toJSON(obj: self.queryChainLengthMsg)
-//            self.write(ws: ws, message: msg)
+            self.write(ws: ws, message: msg)
         } catch let error {
             print("Could not initialize connection, ws: \(ws), error: \(error).")
         }
     }
-
-//    Replaced by Starscream delegate function
-//    func initMessageHandler(ws: Socket) {
-//        
-//    }
     
-    func initErrorHandler(ws: Socket) {
-        
-    }
-    
-    func connectToPeers(newPeers: [String]) {
-        // TODO
+    func connectToPeers(newPeers: [URL]) {
+        for peer in newPeers {
+            let ws = WebSocket(url: peer)
+            self.initConnection(ws: ws)
+        }
     }
     
     func handleBlockchainResponse(message: SwiftchainMessage) {
-        
+        do {
+            if let data = message.data {
+                var recievedBlocks = try self.fromJSON(data: data) as! [Block<T>]
+                recievedBlocks = recievedBlocks.sorted(by: { (block1, block2) in
+                    return (Int(block1.index) - Int(block2.index)) > 0
+                })
+                
+                let latestBlockReceived = recievedBlocks.last!
+                let latestBlockHeld = self.swiftchain.getLatestBlock()!
+                
+                if latestBlockReceived.index > latestBlockHeld.index {
+                    print("Swiftchain may be behind, we have latest: \(latestBlockHeld.index), " +
+                        "peer has latest: \(latestBlockReceived.index)")
+                    if latestBlockHeld.hash == latestBlockReceived.previousHash {
+                        print("We can append the received block to our chain.")
+                        self.swiftchain.addBlock(newBlock: latestBlockReceived)
+                        let responseLatest = try self.toJSON(obj: self.responseLatestMsg())
+                        self.broadcast(message: responseLatest)
+                    } else if recievedBlocks.count == 1 {
+                        print("We have to query the chain from our peer.")
+                        let queryMsg = try self.toJSON(obj: self.queryAllMsg)
+                        self.broadcast(message: queryMsg)
+                    } else {
+                        print("Received Swiftchain is longer than current chain.")
+                        self.swiftchain.replaceChain(newBlocks: recievedBlocks)
+                    }
+                }
+            }
+        } catch let error {
+            print("Could not handle blockchain response, message: \(message), error: \(error).")
+        }
     }
     
     func write(ws: WebSocket, message: Data) {
-//        do {
-//            try ws.writeData(message)
-//        } catch let error {
+        do {
+            ws.write(data: message)
+        } //catch let error {
 //            print("There was an error writing to the socket, ws: \(ws), message: \(message), error: \(error).")
 //        }
     }
@@ -155,5 +181,14 @@ public class SwiftchainServer<T>: WebSocketDelegate where T: Equatable {
     func toJSON(obj: Any) throws -> Data {
         return try JSONSerialization.data(withJSONObject: obj,
                                           options: JSONSerialization.WritingOptions.prettyPrinted)
+    }
+    
+    func broadcastResponseLatestMsg() {
+        do {
+            let responseLatest = try self.toJSON(obj: self.responseLatestMsg())
+            self.broadcast(message: responseLatest)
+        } catch let error {
+            print("Error while trying to broadcast response latest message, error: \(error)")
+        }
     }
 }

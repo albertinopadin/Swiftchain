@@ -8,9 +8,14 @@
 
 import Foundation
 
+protocol SwiftchainDelegate {
+    func broadcastResponseLatestMsg()
+}
+
 // Maybe we could conform this class to certain protocols later on
 class Swiftchain<T> where T: Equatable {
     var blockchain: [Block<T>]
+    var delegate: SwiftchainDelegate?
     
     init() {
         self.blockchain = []
@@ -95,7 +100,7 @@ class Swiftchain<T> where T: Equatable {
         if isValidChain(blockchainToValidate: newBlocks) && newBlocks.count > self.blockchain.count {
             print("Recieved blockchain is valid; replacing current with new.")
             self.blockchain = newBlocks
-            // broadcast(responseLatestMsg())  <- Will implement the server as a separate class later on
+            self.delegate?.broadcastResponseLatestMsg()
         }
     }
     
