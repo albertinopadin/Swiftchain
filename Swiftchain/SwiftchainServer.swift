@@ -131,7 +131,7 @@ public class SwiftchainServer<T>: WebSocketDelegate, SwiftchainDelegate where T:
             if let data = message.data {
                 var recievedBlocks = try self.fromJSON(data: data) as! [Block<T>]
                 recievedBlocks = recievedBlocks.sorted(by: { (block1, block2) in
-                    return (Int(block1.index) - Int(block2.index)) > 0
+                    return (Int(block1.index) < Int(block2.index))
                 })
                 
                 let latestBlockReceived = recievedBlocks.last!
